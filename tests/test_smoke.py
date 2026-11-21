@@ -14,7 +14,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 import httpx  # noqa: E402
-from ai_bot.bot import Bridge  # noqa: E402
+from ai_bot.bot import Bridge, should_notify  # noqa: E402
 from ai_bot.config import Config  # noqa: E402
 from ai_bot.llm import ChatClient  # noqa: E402
 from ai_bot.store import Store  # noqa: E402
@@ -160,6 +160,22 @@ async def running_bridge(env: dict):
         finally:
             bridge._stop.set()
             await asyncio.wait_for(task, timeout=5)
+
+
+class DenyThrottleTest(unittest.TestCase):
+    def test_first_message_is_never_swallowed(self):
+        # a freshly booted machine has a small monotonic clock
+        self.assertTrue(should_notify({}, 111, 0.5))
+        self.assertTrue(should_notify({}, 111, 12.0))
+
+    def test_repeats_inside_the_window_are_dropped(self):
+        self.assertFalse(should_notify({111: 10.0}, 111, 20.0))
+
+    def test_the_window_expires(self):
+        self.assertTrue(should_notify({111: 10.0}, 111, 400.0))
+
+    def test_other_users_are_unaffected(self):
+        self.assertTrue(should_notify({111: 10.0}, 222, 20.0))
 
 
 class SmokeTest(unittest.IsolatedAsyncioTestCase):

@@ -44,6 +44,18 @@ Commands:
 Long answers get split into several messages. The conversation is stored on the server that runs me."""
 
 _COMMAND_RE = re.compile(r"^/([A-Za-z0-9_]+)(?:@([A-Za-z0-9_]+))?\s*(.*)$", re.S)
+_DENY_WINDOW = 300.0
+
+
+def should_notify(throttle: dict[int, float], user_id: int, now: float, window: float = _DENY_WINDOW) -> bool:
+    """True unless this user was already told off within the window.
+
+    The sentinel has to be "never seen", not 0.0: time.monotonic() counts from
+    boot, so on a freshly started machine a 0.0 default reads as "notified 12
+    seconds ago" and swallows the first message.
+    """
+    last = throttle.get(user_id)
+    return last is None or now - last >= window
 _MAX_IMAGE_BYTES = 20 * 1024 * 1024
 
 
@@ -386,7 +398,7 @@ class Bridge:
 
     async def _deny(self, chat_id: int, message_id: int, sender_id: int) -> None:
         now = time.monotonic()
-        if now - self._denied_at.get(sender_id, 0.0) < 300:
+        if not should_notify(self._denied_at, sender_id, now):
             return
         self._denied_at[sender_id] = now
         await self._reply(
