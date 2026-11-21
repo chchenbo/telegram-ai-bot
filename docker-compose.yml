@@ -1,0 +1,17 @@
+services:
+  bot:
+    build: .
+    image: telegram-ai-bot:latest
+    container_name: telegram-ai-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      STATE_PATH: /data/state.json
+    volumes:
+      - ./data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

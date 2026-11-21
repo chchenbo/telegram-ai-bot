@@ -1,0 +1,26 @@
+[Unit]
+Description=AI Telegram bot
+Documentation=file:///opt/telegram-ai-bot/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ai-bot
+Group=ai-bot
+WorkingDirectory=/opt/telegram-ai-bot
+Environment=PYTHONPATH=/opt/telegram-ai-bot/src
+EnvironmentFile=/opt/telegram-ai-bot/.env
+ExecStart=/opt/telegram-ai-bot/.venv/bin/python -m ai_bot
+Restart=always
+RestartSec=5
+
+# Hardening: the service may only write to data/
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/telegram-ai-bot/data
+
+[Install]
+WantedBy=multi-user.target

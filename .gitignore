@@ -1,0 +1,10 @@
+.env
+data/
+assets/
+*.pyc
+__pycache__/
+.venv/
+.venv-*/
+*.tmp
+*.broken
+.DS_Store
