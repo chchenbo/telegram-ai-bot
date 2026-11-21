@@ -14,6 +14,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 import httpx  # noqa: E402
+
 from ai_bot.bot import Bridge, should_notify  # noqa: E402
 from ai_bot.config import Config  # noqa: E402
 from ai_bot.llm import ChatClient  # noqa: E402
